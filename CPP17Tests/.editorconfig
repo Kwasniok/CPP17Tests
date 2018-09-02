@@ -1,0 +1,11 @@
+﻿﻿# https://EditorConfig.org
+
+# top-most EditorConfig file
+root = true
+
+# all
+[*]
+charset = utf-8-bom
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
