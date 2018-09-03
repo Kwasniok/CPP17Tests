@@ -176,6 +176,11 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="type_deduction.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="type_deduction.h" />
+    <ClInclude Include="show_type.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
