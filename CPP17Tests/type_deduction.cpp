@@ -35,6 +35,11 @@ constexpr size_t size_of_array(T(&)[N]) noexcept {
 	return N;
 }
 
+// functions for item 2:
+template<typename T>
+T func_with_init_list(initializer_list<T> x) {};
+
+
 void type_deduction() {
 
 	// item 1:
@@ -155,6 +160,24 @@ void type_deduction() {
 	int array[3];
 	cout << "The array has " << size_of_array(array) << " elements" << endl << endl;
 
+	//item 2:
+	// auto type deduction
+
+	// like template type deduction eycept for braced initializers
+	auto bi = {1};
+
+	cout << "item_2a: auto type deduction for braced initializers" << endl;
+	cout << "decltype(bi) = " << type_id_with_cvr<decltype(bi)>().pretty_name() << endl;
+	cout << endl << endl;
+
+	auto lambda = []() {};
+	cout << "item_2b: auto type deduction for lambda experssions" << endl;
+	cout << "decltype(lambda) = " << type_id_with_cvr<decltype(lambda)>().pretty_name() << endl;
+	cout << endl << endl;
+
+	cout << "item_2c: auto type deduction for function parameters with initializer_lists" << endl;
+	cout << "T = " << type_id_with_cvr<decltype(func_with_init_list({1,2,3}))>().pretty_name() << endl;
+	cout << endl << endl;
 
 	// item 4:
 	// get type names from the compiler
