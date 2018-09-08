@@ -1,6 +1,9 @@
-
+﻿
 #include <iostream>
+#include "rvalue_tests.h"
+
+using namespace std;
 
 int main() {
-    std::cout << "Hello World!" << std::endl;
+	//rvalue_tests();
 }

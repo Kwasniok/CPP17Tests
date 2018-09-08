@@ -180,6 +180,10 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="rvalue_tests.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="rvalue_tests.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
