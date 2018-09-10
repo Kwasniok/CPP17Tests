@@ -184,10 +184,12 @@
     <ClCompile Include="main.cpp" />
     <ClCompile Include="quantity_tests.cpp" />
     <ClCompile Include="rvalue_tests.cpp" />
+    <ClCompile Include="override_tests.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="double_ref_tests.h" />
     <ClInclude Include="lambda_tests.h" />
+    <ClInclude Include="override_tests.h" />
     <ClInclude Include="Quantity.h" />
     <ClInclude Include="quantity_tests.h" />
     <ClInclude Include="rvalue_tests.h" />
