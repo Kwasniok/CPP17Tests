@@ -181,10 +181,13 @@
   <ItemGroup>
     <ClCompile Include="double_ref_tests.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="quantity_tests.cpp" />
     <ClCompile Include="rvalue_tests.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="double_ref_tests.h" />
+    <ClInclude Include="Quantity.h" />
+    <ClInclude Include="quantity_tests.h" />
     <ClInclude Include="rvalue_tests.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
