@@ -21,9 +21,15 @@
     <ClCompile Include="rvalue_tests.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="double_ref_tests.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="rvalue_tests.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="double_ref_tests.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
