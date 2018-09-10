@@ -180,6 +180,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="double_ref_tests.cpp" />
+    <ClCompile Include="inline_namespace_tests.cpp" />
     <ClCompile Include="lambda_tests.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="quantity_tests.cpp" />
@@ -188,6 +189,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="double_ref_tests.h" />
+    <ClInclude Include="inline_namespace_tests.h" />
     <ClInclude Include="lambda_tests.h" />
     <ClInclude Include="override_tests.h" />
     <ClInclude Include="Quantity.h" />

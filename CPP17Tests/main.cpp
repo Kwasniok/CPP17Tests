@@ -5,6 +5,7 @@
 #include "quantity_tests.h"
 #include "lambda_tests.h"
 #include "override_tests.h"
+#include "inline_namespace_tests.h"
 
 using namespace std;
 
@@ -14,4 +15,5 @@ int main() {
 	//quantity_tests();
 	//lambda_tests();
 	//override_tests();
+	//inline_namespace_tests();
 }
