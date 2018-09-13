@@ -186,9 +186,11 @@
     <ClCompile Include="quantity_tests.cpp" />
     <ClCompile Include="rvalue_tests.cpp" />
     <ClCompile Include="override_tests.cpp" />
+    <ClCompile Include="thread_tests.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="double_ref_tests.h" />
+    <ClInclude Include="thread_tests.h" />
     <ClInclude Include="inline_namespace_tests.h" />
     <ClInclude Include="lambda_tests.h" />
     <ClInclude Include="override_tests.h" />
