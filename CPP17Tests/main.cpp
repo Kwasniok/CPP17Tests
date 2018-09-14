@@ -14,7 +14,7 @@ struct ci_char_traits: public std::char_traits<char> {
 		return tolower(lhs) < tolower(rhs);
 	}
 	static const char* find(const char* s, int n, char a) {
-		while (n-- > 0 && toupper(*s) != toupper(a)) { ++s; }
+		while (n-- > 0 && tolower(*s) != tolower(a)) { ++s; }
 		return n > 0 ? s : 0;
 	}
 };
