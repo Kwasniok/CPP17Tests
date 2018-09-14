@@ -4,18 +4,29 @@
 #include <string>
 
 struct ci_char_traits: public std::char_traits<char> {
-	static bool compare(const char * const lhs, const char * const rhs, const size_t n) {
-		return _memicmp(lhs, rhs, n);
+	static constexpr bool compare(const char * lhs, const char * rhs, size_t n) {
+		// adapted from: http://www.cplusplus.com/reference/string/char_traits/compare/
+		// could be optimized
+		while (n--) {if (!eq(*lhs,*rhs)) return lt(*lhs,*rhs)?-1:1; ++lhs; ++rhs;}
+		return 0;
 	}
-	static bool eq(char lhs, char rhs) {
-		return tolower(lhs) == tolower(rhs);
+	static constexpr bool eq(char lhs, char rhs) {
+		return to_std_repr(lhs) == to_std_repr(rhs);
 	}
-	static bool lt(char lhs, char rhs) {
-		return tolower(lhs) < tolower(rhs);
+	static constexpr bool lt(char lhs, char rhs) {
+		return to_std_repr(lhs) < to_std_repr(rhs);
 	}
-	static const char* find(const char* s, int n, char a) {
-		while (n-- > 0 && tolower(*s) != tolower(a)) { ++s; }
+	static constexpr const char* find(const char* s, int n, char a) {
+		while (n-- > 0 && to_std_repr(*s) != to_std_repr(a)) { ++s; }
 		return n > 0 ? s : 0;
+	}
+	static constexpr char to_std_repr(const char c) {
+		// override for insensitivity
+		// converts A-Z to a-z (assuming ASCII)
+		// A := 0x41, Z := 0x5A
+		// a := 0x61, z := 0x7A
+		if (0x41 <= c && c <= 0x5A) return c + 0x20;
+		return c;
 	}
 };
 
