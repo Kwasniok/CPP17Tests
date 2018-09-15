@@ -104,19 +104,37 @@ constexpr char to_std_repr<intensitivity::DIGIT>(const char c) {
 using ci_string = insensitive_string<intensitivity::CASE>;
 using di_string = insensitive_string<intensitivity::DIGIT>;
 
+// MAIN routine
 int main() {
+	const bool interactive = false;
 	{
+		std::cout << "CASE-insensitive" << std::endl;
 		ci_string s("AbCdE");
 		assert(s == "abcde");
 		assert(s == "ABCDE");
 		assert(strcmp(s.c_str(), "AbCdE") == 0);
 		assert(strcmp(s.c_str(), "abcde") != 0);
+		if (interactive) {
+			std::cout << "s = " << s << std::endl;
+			ci_string s2;
+			std::cout << "s2 = ";
+			std::cin >> s2;
+			std::cout << "s == s2 --> " << ((s == s2) ? "true" : "false") << std::endl;
+		}
 	}
 	{
-		di_string s("Hello 12");
-		assert(s == "Hello 89");
-		assert(s == "Hello 26");
-		assert(strcmp(s.c_str(), "Hello 12") == 0);
-		assert(strcmp(s.c_str(), "Hello 00") != 0);
+		std::cout << "DIGIT-insensitive" << std::endl;
+		di_string s("Hello12");
+		assert(s == "Hello89");
+		assert(s == "Hello26");
+		assert(strcmp(s.c_str(), "Hello12") == 0);
+		assert(strcmp(s.c_str(), "Hello00") != 0);
+		if (interactive) {
+			std::cout << "s = " << s << std::endl;
+			di_string s2;
+			std::cout << "s2 = ";
+			std::cin >> s2;
+			std::cout << "s == s2 --> " << ((s == s2) ? "true" : "false") << std::endl;
+		}
 	}
 }
