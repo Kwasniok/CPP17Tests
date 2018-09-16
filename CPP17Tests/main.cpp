@@ -41,6 +41,9 @@ public:
 		return *this;
 	}
 
+public:
+	inline bool valid() noexcept { return mem_; }
+
 	iterator begin() noexcept {
 		return mem_;
 	}
