@@ -1,5 +1,8 @@
 ﻿
 #include <iostream>
+#include <algorithm>
+
+using namespace std;
 
 template<typename T>
 class Stack {
@@ -10,15 +13,9 @@ class Stack {
 public:
 	Stack() : mem_(new T[capacity_]) { };
 	Stack(const Stack& rhs) : mem_(new T[rhs.size_]()) , size_(rhs.size_), capacity_(rhs.capacity_) {
-		T* i = mem_;
 		try {
-			for (const_iterator it = rhs.begin(), end = rhs.end(); it != end; ++it, ++i) {
-				*i = *it;
-			}
+			copy(rhs.begin(), rhs.end(), mem_);
 		} catch (...) {
-			for (iterator e = mem_; i != e; --i) {
-				i->~T();
-			}
 			delete[] mem_;
 			throw;
 		}
@@ -33,15 +30,9 @@ public:
 
 		T* tmp = new T[rhs.size_]();
 
-		T* i = tmp;
 		try {
-			for (const_iterator it = rhs.begin(), end = rhs.end(); it != end; ++it, ++i) {
-				*i = *it;
-			}
+			copy(rhs.begin(), rhs.end(), tmp);
 		} catch (...) {
-			for (iterator e = tmp; i != e; --i) {
-				i->~T();
-			}
 			delete[] tmp;
 			throw;
 		}
