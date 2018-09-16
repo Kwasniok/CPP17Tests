@@ -25,9 +25,6 @@ public:
 	}
 
 	Stack& operator=(const Stack& rhs) {
-		delete[] mem_;
-		mem_ = nullptr;
-
 		T* tmp = new T[rhs.size_]();
 
 		try {
@@ -37,9 +34,10 @@ public:
 			throw;
 		}
 
+		delete[] mem_;
 		mem_ = tmp;
 		size_ = rhs.size_;
-		capacity_ = rhs.capacity_;
+		capacity_ = rhs.size_;
 		return *this;
 	}
 
