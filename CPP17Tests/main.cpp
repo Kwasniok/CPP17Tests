@@ -4,21 +4,9 @@
 template<typename T>
 class Stack {
 public:
-	Stack() {
-		T* tmp = nullptr;
-		try {
-			tmp = new T[capacity_];
-		} catch (std::bad_alloc e) {
-			capacity_ = 0;
-			throw;
-		}
-		if (tmp) {
-			mem_ = tmp;
-		}
-	};
+	Stack() : mem_(new T[capacity_]) { };
 	~Stack() {
 		delete[] mem_;
-		mem_ = nullptr;
 	}
 
 private:
