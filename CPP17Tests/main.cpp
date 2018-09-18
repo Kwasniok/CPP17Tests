@@ -63,21 +63,23 @@ template<typename T>
 void Stack<T>::push(const T& v)
 {
 	if (size() == capacity()) extend(10);
-	T tmp = v;
-	swap(tmp, *end());
+	mem_[size_] = v;
 	++size_;
 }
 
 template<typename T>
 T Stack<T>::pop() throw(empty_stack_error)
 {
-	if (empty()) throw empty_stack_error("empty_stack_error: cannot pop from empty Stack"); // upgrade!!
-	iterator it = end();
-	--it;
-	T tmp = *it;
-	it->~T();
+	if (empty()) throw empty_stack_error("empty_stack_error: cannot pop from empty Stack");
+	// copy object
+	T tmp = mem_[size_ - 1];
+	// release resources of original (nothrow)
+	mem_[size_ - 1].~T();
+	// update stack state
 	--size_;
-	return tmp; // move?
+	// return copy
+	// this might unavoidably throw! --> change interface to fix this (only chance)
+	return tmp; // return move(mem_[_size - 1] ???
 }
 
 template<typename T>
@@ -104,14 +106,8 @@ inline T* Stack<T>::new_copy(const_iterator src_begin, const_iterator src_end, c
 template<typename T>
 void Stack<T>::extend(const size_t n)
 {
-
 	// try allocating new memory and try copying data to it
-	T* tmp;
-	if (capacity_ == 0) {
-		tmp = new T[n];
-	} else {
-		tmp = new_copy(this->begin(), this->end(), this->capacity() + n);
-	}
+	T* tmp = new_copy(this->begin(), this->end(), this->capacity() + n);
 	// copy was successful: changes can now be applied to the program
 	// use nothrow fuctions from this point on!
 	delete[] mem_; // does/should not throw!
