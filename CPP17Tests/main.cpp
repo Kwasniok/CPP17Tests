@@ -12,14 +12,7 @@ class Stack {
 
 public:
 	Stack() : mem_(new T[capacity_]) { };
-	Stack(const Stack& rhs) : mem_(new T[rhs.size_]()) , size_(rhs.size_), capacity_(rhs.capacity_) {
-		try {
-			copy(rhs.begin(), rhs.end(), mem_);
-		} catch (...) {
-			delete[] mem_;
-			throw;
-		}
-	}
+	Stack(const Stack& rhs) : mem_(new_copy(rhs)), size_(rhs.size_), capacity_(new_copy_capacity(rhs)) { }
 	~Stack() noexcept {
 		delete[] mem_;
 	}
@@ -27,20 +20,14 @@ public:
 	Stack& operator=(const Stack& rhs) {
 
 		if (this != &rhs) {
-
-			T* tmp = new T[rhs.size_]();
-
-			try {
-				copy(rhs.begin(), rhs.end(), tmp);
-			} catch (...) {
-				delete[] tmp;
-				throw;
-			}
-
-			delete[] mem_;
+			// try allocating new memory and try copying data to it
+			T* tmp = new_copy(rhs);
+			// copy was successful: changes can now be applied to the program
+			// use nothrow fuctions from this point on!
+			delete[] mem_; // does/should not throw!
 			mem_ = tmp;
 			size_ = rhs.size_;
-			capacity_ = rhs.size_;
+			capacity_ = new_copy_capacity(rhs);
 		}
 		return *this;
 	}
@@ -59,6 +46,33 @@ public:
 	}
 	const_iterator end() const noexcept {
 		return mem_ ? mem_ + size_ : nullptr;
+	}
+
+private:
+	inline T* new_copy(const Stack& rhs) {
+		// Tries to allocate memory and tries to copy all elemens.
+		// Behaves exception-neutral & -safe.
+		// If this function returns, the returned pointer holds a successfull copy and
+		// the ownership of the pointer is passed on.
+
+		// try allocation a new block of memory
+		T* tmp = new T[new_copy_capacity(rhs)]();
+		// try copying
+		try {
+			copy(rhs.begin(), rhs.end(), tmp);
+		} catch (...) {
+			// failure: clean up!
+			delete[] tmp;
+			// behave exception-neutral
+			throw;
+		}
+		// success: hand over pointer & ownership
+		return tmp;
+	}
+
+	inline size_t new_copy_capacity(const Stack& rhs) {
+		// returns the capacity of memory returend by new_copy if rhs was passed to it
+		return rhs.size_;
 	}
 
 private:
