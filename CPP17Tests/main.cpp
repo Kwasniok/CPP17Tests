@@ -19,13 +19,14 @@ public:
 	typedef const T* const_iterator;
 public:
 	Stack() : mem_(new T[capacity_]) { }
-	Stack(const size_t n) : mem_(new T[capacinty_]) : capacity_ = n { }
+	Stack(const size_t n) : mem_(new T[n]), capacity_(n) { }
 	Stack(const Stack& rhs) : mem_(new_copy(rhs.begin(), rhs.end(), rhs.size())), size_(rhs.size()), capacity_(rhs.size()) { }
 	Stack& operator=(const Stack& rhs);
 	~Stack() noexcept { delete[] mem_; }
 public:
 	void push(const T& v);
-	T pop() throw(empty_stack_error);
+	T& top() const throw(empty_stack_error);
+	void pop() throw(empty_stack_error);
 	inline bool valid() const noexcept { return mem_; }
 	inline size_t size() const noexcept { return size_; }
 	inline size_t capacity() const noexcept { return capacity_; }
@@ -70,18 +71,24 @@ void Stack<T>::push(const T& v)
 }
 
 template<typename T>
-T Stack<T>::pop() throw(empty_stack_error)
+T& Stack<T>::top() const throw(empty_stack_error)
 {
+	// give a reference to the last element
+	// an empty stack throws an empty_stack_error
+	if (empty()) throw empty_stack_error("empty_stack_error: cannot top from empty Stack");
+	// return reference
+	return mem_[size_ - 1];
+}
+template<typename T>
+void Stack<T>::pop() throw(empty_stack_error)
+{
+	// remove last element
+	// an empty stack throws an empty_stack_error
 	if (empty()) throw empty_stack_error("empty_stack_error: cannot pop from empty Stack");
-	// copy object
-	T tmp = mem_[size_ - 1];
 	// release resources of original (nothrow)
 	mem_[size_ - 1].~T();
 	// update stack state
 	--size_;
-	// return copy
-	// this might unavoidably throw! --> change interface to fix this (only chance)
-	return tmp; // return move(mem_[_size - 1] ???
 }
 
 template<typename T>
