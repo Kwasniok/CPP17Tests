@@ -19,6 +19,7 @@ public:
 	typedef const T* const_iterator;
 public:
 	Stack() : mem_(new T[capacity_]) { }
+	Stack(const size_t n) : mem_(new T[capacinty_]) : capacity_ = n { }
 	Stack(const Stack& rhs) : mem_(new_copy(rhs.begin(), rhs.end(), rhs.size())), size_(rhs.size()), capacity_(rhs.size()) { }
 	Stack& operator=(const Stack& rhs);
 	~Stack() noexcept { delete[] mem_; }
@@ -35,6 +36,7 @@ public:
 	inline const_iterator end() const noexcept { return mem_ ? mem_ + size_ : nullptr; }
 private:
 	inline T* new_copy(const_iterator src_begin, const_iterator src_end, const size_t capacity);
+public:
 	inline void extend(const size_t);
 private:
 	T* mem_ = nullptr;
