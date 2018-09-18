@@ -119,9 +119,30 @@ void Stack<T>::extend(const size_t n)
 	capacity_ += n;;
 }
 
+template<typename T>
+inline void print_stack(const Stack<T>& s, const char* name)
+{
+	cout << name << " = {";
+	for (auto it : s) { cout << it << ", "; }
+	cout << "}" << endl;
+}
 
 int main() {
+	// short test
 	Stack<int> s;
 	Stack<int> s2(s);
 	s = s2;
+	print_stack(s, "s");
+	cout << "push(1)" << endl;
+	s.push(1);
+	print_stack(s, "s");
+	cout << "pop()" << endl;
+	s.pop();
+	print_stack(s, "s");
+	cout << "pop()" << endl;
+	try {
+		s.pop();
+	} catch (empty_stack_error e) {
+		cout << e.what() << endl;
+	}
 }
