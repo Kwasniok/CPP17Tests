@@ -25,19 +25,23 @@ public:
 	}
 
 	Stack& operator=(const Stack& rhs) {
-		T* tmp = new T[rhs.size_]();
 
-		try {
-			copy(rhs.begin(), rhs.end(), tmp);
-		} catch (...) {
-			delete[] tmp;
-			throw;
+		if (this != &rhs) {
+
+			T* tmp = new T[rhs.size_]();
+
+			try {
+				copy(rhs.begin(), rhs.end(), tmp);
+			} catch (...) {
+				delete[] tmp;
+				throw;
+			}
+
+			delete[] mem_;
+			mem_ = tmp;
+			size_ = rhs.size_;
+			capacity_ = rhs.size_;
 		}
-
-		delete[] mem_;
-		mem_ = tmp;
-		size_ = rhs.size_;
-		capacity_ = rhs.size_;
 		return *this;
 	}
 
