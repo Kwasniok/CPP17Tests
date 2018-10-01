@@ -28,14 +28,15 @@ public:
 };
 
 template<typename T>
-StackImpl<T>::StackImpl(size_t capacity) : capacity_(capacity), mem_(capacity ? reinterpret_cast<T*>(new char[sizeof(T)*capacity]) : nullptr) { }
+StackImpl<T>::StackImpl(size_t capacity) : capacity_(capacity), mem_(capacity ? static_cast<T*>(operator new(sizeof(T)*capacity)) : nullptr) { }
 template<typename T>
 StackImpl<T>::~StackImpl()
 {
 	// destructs all used elements and deallocates the memory
-	for (size_t i = 0; i < size_; ++i, ++mem_) {
-		delete mem_;
-	}
+	// destruct all used elemetnts
+	destroy(mem_, mem_ + size_);
+	// deacllocate used memory
+	operator delete(mem_);
 }
 template<typename T>
 void StackImpl<T>::swap(StackImpl<T>& rhs) noexcept
