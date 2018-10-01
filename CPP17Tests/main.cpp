@@ -11,6 +11,41 @@ public:
 	explicit empty_stack_error(const char* what_arg) : std::runtime_error(what_arg) { }
 };
 
+template <typename T>
+class StackImpl
+{
+public:
+	static constexpr size_t default_capacity = 8;
+
+	StackImpl(size_t capacity = default_capacity);
+	StackImpl( const StackImpl& ) = delete;
+	~StackImpl();
+	StackImpl& operator=( const StackImpl& ) = delete;
+	void swap(StackImpl& rhs) noexcept;
+	T*     mem_ = nullptr;
+	size_t size_ = 0;
+	size_t capacity_ = default_capacity;
+};
+
+template<typename T>
+StackImpl<T>::StackImpl(size_t capacity) : capacity_(capacity), mem_(capacity ? reinterpret_cast<T*>(new char[sizeof(T)*capacity]) : nullptr) { }
+template<typename T>
+StackImpl<T>::~StackImpl()
+{
+	// destructs all used elements and deallocates the memory
+	for (size_t i = 0; i < size_; ++i, ++mem_) {
+		delete mem_;
+	}
+}
+template<typename T>
+void StackImpl<T>::swap(StackImpl<T>& rhs) noexcept
+{
+	// swaps the representations
+	std::swap(mem_, rhs.mem_);
+	std::swap(size_, rhs.size_);
+	std::swap(capacity_, rhs.capacity_);
+}
+
 template<typename T>
 class Stack
 {
@@ -132,8 +167,19 @@ inline void print_stack(const Stack<T>& s, const char* name)
 	cout << "}" << endl;
 }
 
-int main() {
-	// short test
+int main()
+{
+	// short tests for StackImpl
+	{
+		StackImpl<int> si1(3);
+		StackImpl<int> si2(2);
+		si1.mem_[0] = 1;
+		si2.mem_[0] = 2;
+		si1.swap(si2);
+	}
+
+	// short tests for STack
+	/*/
 	Stack<int> s;
 	Stack<int> s2(s);
 	s = s2;
@@ -157,4 +203,5 @@ int main() {
 	} catch (empty_stack_error e) {
 		cout << e.what() << endl;
 	}
+	*/
 }
