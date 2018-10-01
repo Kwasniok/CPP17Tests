@@ -1,42 +1,42 @@
 ﻿
 #include <iostream>
 #include <algorithm>
+#include <memory>
 
 using namespace std;
-
-class empty_stack_error: public std::runtime_error
-{
-public:
-	explicit empty_stack_error(const std::string& what_arg) : std::runtime_error(what_arg) { }
-	explicit empty_stack_error(const char* what_arg) : std::runtime_error(what_arg) { }
-};
 
 template <typename T>
 class StackImpl
 {
-public:
-	static constexpr size_t default_capacity = 8;
-
-	StackImpl(size_t capacity = default_capacity);
+protected:
+	StackImpl(size_t capacity);
 	StackImpl( const StackImpl& ) = delete;
 	~StackImpl();
 	StackImpl& operator=( const StackImpl& ) = delete;
+	void extend(const size_t n);
 	void swap(StackImpl& rhs) noexcept;
+	bool valid() const noexcept { return mem_; }
+protected:
 	T*     mem_ = nullptr;
 	size_t size_ = 0;
-	size_t capacity_ = default_capacity;
+	size_t capacity_;
 };
 
 template<typename T>
-StackImpl<T>::StackImpl(size_t capacity) : capacity_(capacity), mem_(capacity ? static_cast<T*>(operator new(sizeof(T)*capacity)) : nullptr) { }
+StackImpl<T>::StackImpl(size_t capacity) : capacity_(capacity), mem_(capacity ? static_cast<T*>(operator new(sizeof(T)*capacity)) : nullptr)
+{
+	// allocates memory but leaves it uninitialized
+}
 template<typename T>
 StackImpl<T>::~StackImpl()
 {
 	// destructs all used elements and deallocates the memory
+	// check if the memory is used
 	// destruct all used elemetnts
-	destroy(mem_, mem_ + size_);
+	//if(mem_==nullptr) return; <-- possible optimization
+	destroy(mem_, mem_ + size_); // nullptr-safe
 	// deacllocate used memory
-	operator delete(mem_);
+	operator delete(mem_); // nullptr-safe if std implementation
 }
 template<typename T>
 void StackImpl<T>::swap(StackImpl<T>& rhs) noexcept
@@ -46,54 +46,81 @@ void StackImpl<T>::swap(StackImpl<T>& rhs) noexcept
 	std::swap(size_, rhs.size_);
 	std::swap(capacity_, rhs.capacity_);
 }
-
 template<typename T>
-class Stack
+void StackImpl<T>::extend(const size_t n)
 {
+	// try allocation a new block of memory
+	T* tmp = static_cast<T*> (operator new(sizeof(T)*(capacity_ + n)));
+	// try copying
+	try {
+		copy(mem_, mem_+size_, tmp);
+	} catch (...) {
+		// failure: clean up!
+		operator delete(tmp);
+		// behave exception-neutral
+		throw;
+	}
+	// copy was successful: changes can now be applied to the program
+	// use nothrow fuctions from this point on!
+	// destruct all old used elemetnts & deallocate the old memory
+	//if(mem_!=nullptr) { ... <-- possible optimization
+	destroy(mem_, mem_+size_); // nullptr-safe
+	operator delete (mem_); // nullptr-safe if std implementation
+	// apply changes
+	mem_ = tmp;
+	capacity_ += n;;
+}
+
+class empty_stack_error: public std::runtime_error
+{
+public:
+	explicit empty_stack_error(const std::string& what_arg) : std::runtime_error(what_arg) { }
+	explicit empty_stack_error(const char* what_arg) : std::runtime_error(what_arg) { }
+};
+
+// NOTE: The usage of 'this->' is necessary for the gcc complier (see: https://gcc.gnu.org/onlinedocs/gcc/Name-lookup.html)
+template<typename T>
+class Stack : private StackImpl<T>
+{
+public:
+	static constexpr size_t default_capacity_chunk_size = 8;
 public:
 	typedef T* iterator;
 	typedef const T* const_iterator;
 public:
-	Stack() : mem_(new T[capacity_]) { }
-	Stack(const size_t n) : mem_(new T[n]), capacity_(n) { }
-	Stack(const Stack& rhs) : mem_(new_copy(rhs.begin(), rhs.end(), rhs.size())), size_(rhs.size()), capacity_(rhs.size()) { }
+	Stack(size_t capacity = default_capacity_chunk_size) : StackImpl<T>(capacity) { }
+	Stack(const Stack& rhs);
 	Stack& operator=(const Stack& rhs);
-	~Stack() noexcept { delete[] mem_; }
+	~Stack() noexcept { }
 public:
 	void push(const T& v);
 	T& top() const throw(empty_stack_error);
 	void pop() throw(empty_stack_error);
-	inline bool valid() const noexcept { return mem_; }
-	inline size_t size() const noexcept { return size_; }
-	inline size_t capacity() const noexcept { return capacity_; }
-	inline bool empty() const noexcept { return size_ == 0; }
-	inline iterator begin() noexcept { return mem_; }
-	inline iterator end() noexcept { return mem_ ? mem_ + size_ : nullptr; }
-	inline const_iterator begin() const noexcept { return mem_; }
-	inline const_iterator end() const noexcept { return mem_ ? mem_ + size_ : nullptr; }
-private:
-	inline T* new_copy(const_iterator src_begin, const_iterator src_end, const size_t capacity);
-public:
-	inline void extend(const size_t);
-private:
-	T* mem_ = nullptr;
-	size_t size_ = 0;
-	size_t capacity_ = 10;
+	inline size_t size() const noexcept { return this->size_; }
+	inline size_t capacity() const noexcept { return this->capacity_; }
+	inline bool empty() const noexcept { return this->size_ == 0; }
+	inline iterator begin() noexcept { return this->mem_; }
+	inline iterator end() noexcept { return this->mem_ ? this->mem_ + this->size_ : nullptr; }
+	inline const_iterator begin() const noexcept { return this->mem_; }
+	inline const_iterator end() const noexcept { return this->mem_ ? this->mem_ + this->size_ : nullptr; }
 };
 
+template<typename T>
+Stack<T>::Stack(const Stack& rhs) : StackImpl<T>(rhs.size_)
+{
+	// if the super constructor failes the destructor of the base class is called and hence the memory is deallocated
+	// try copying
+	copy(rhs.begin(), rhs.end(), this->mem_);
+}
 template<typename T>
 Stack<T>& Stack<T>::operator=(const Stack& rhs)
 {
 	if (this != &rhs)
 	{
-		// try allocating new memory and try copying data to it
-		T* tmp = new_copy(rhs.begin(), rhs.end(), rhs.size());
-		// copy was successful: changes can now be applied to the program
-		// use nothrow fuctions from this point on!
-		delete[] mem_; // does/should not throw!
-		mem_ = tmp;
-		size_ = rhs.size_;
-		capacity_ = rhs.size();
+		// create a copy of rhs
+		Stack<T> tmp(rhs);
+		// success!
+		this->swap(tmp); // noexcept
 	}
 	return *this;
 }
@@ -101,9 +128,12 @@ Stack<T>& Stack<T>::operator=(const Stack& rhs)
 template<typename T>
 void Stack<T>::push(const T& v)
 {
-	if (size() == capacity()) extend(10);
-	mem_[size_] = v;
-	++size_;
+	// appends the new element at the end
+	// extend memory if needed
+	if (size() == capacity()) this->extend(default_capacity_chunk_size);
+	// since the memory slot ist not initialized the new element is constructed in place
+	new(this->mem_ + this->size_) T(v);
+	++this->size_;
 }
 
 template<typename T>
@@ -113,7 +143,7 @@ T& Stack<T>::top() const throw(empty_stack_error)
 	// an empty stack throws an empty_stack_error
 	if (empty()) throw empty_stack_error("empty_stack_error: cannot top from empty Stack");
 	// return reference
-	return mem_[size_ - 1];
+	return this->mem_[this->size_ - 1];
 }
 template<typename T>
 void Stack<T>::pop() throw(empty_stack_error)
@@ -122,42 +152,9 @@ void Stack<T>::pop() throw(empty_stack_error)
 	// an empty stack throws an empty_stack_error
 	if (empty()) throw empty_stack_error("empty_stack_error: cannot pop from empty Stack");
 	// release resources of original (nothrow)
-	mem_[size_ - 1].~T();
+	this->mem_[this->size_ - 1].~T();
 	// update stack state
-	--size_;
-}
-
-template<typename T>
-inline T* Stack<T>::new_copy(const_iterator src_begin, const_iterator src_end, const size_t capacity) {
-	// Tries to allocate memory and tries to copy all elemens.
-	// Behaves exception-neutral & -safe.
-	// If this function returns, the returned pointer holds a successfull copy and
-	// the ownership of the pointer is passed on.
-
-	// try allocation a new block of memory
-	T* tmp = new T[capacity]();
-	// try copying
-	try {
-		copy(src_begin, src_end, tmp);
-	} catch (...) {
-		// failure: clean up!
-		delete[] tmp;
-		// behave exception-neutral
-		throw;
-	}
-	// success: hand over pointer & ownership
-	return tmp;
-}
-template<typename T>
-void Stack<T>::extend(const size_t n)
-{
-	// try allocating new memory and try copying data to it
-	T* tmp = new_copy(this->begin(), this->end(), this->capacity() + n);
-	// copy was successful: changes can now be applied to the program
-	// use nothrow fuctions from this point on!
-	delete[] mem_; // does/should not throw!
-	mem_ = tmp;
-	capacity_ += n;;
+	--this->size_;
 }
 
 template<typename T>
@@ -170,17 +167,7 @@ inline void print_stack(const Stack<T>& s, const char* name)
 
 int main()
 {
-	// short tests for StackImpl
-	{
-		StackImpl<int> si1(3);
-		StackImpl<int> si2(2);
-		si1.mem_[0] = 1;
-		si2.mem_[0] = 2;
-		si1.swap(si2);
-	}
-
-	// short tests for STack
-	/*/
+	// short tests for Stack
 	Stack<int> s;
 	Stack<int> s2(s);
 	s = s2;
@@ -204,5 +191,4 @@ int main()
 	} catch (empty_stack_error e) {
 		cout << e.what() << endl;
 	}
-	*/
 }
