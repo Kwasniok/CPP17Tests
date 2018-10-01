@@ -54,6 +54,7 @@ public:
 };
 
 // NOTE: The usage of 'this->' is necessary for the gcc complier (see: https://gcc.gnu.org/onlinedocs/gcc/Name-lookup.html)
+// NOTE: construct & destruct are deprecated (see: http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2016/p0174r0.html#2.4)
 template<typename T>
 class Stack : private StackImpl<T>
 {
