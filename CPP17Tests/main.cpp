@@ -93,18 +93,12 @@ Stack<T>::Stack(const Stack& rhs, size_t extra_capacity) : impl_(rhs.impl_.size_
 {
 	// if the constructor failes the destructor of the base class is called and hence the memory is deallocated
 	// try copying
-	try {
-		while (this->impl_.size_ < rhs.impl_.size_)
-		{
-			new(this->impl_.mem_ + this->impl_.size_) T(rhs.impl_.mem_[this->impl_.size_]);
-			++this->impl_.size_;
-		}
-	} catch (...) {
-		// if an exception occurs the destructor of the implementation is called and all constructed elements are destroyed
-		// and the memory is deallocated
-		this->impl_.~StackImpl();
-		throw;
+	while (this->impl_.size_ < rhs.impl_.size_)
+	{
+		new(this->impl_.mem_ + this->impl_.size_) T(rhs.impl_.mem_[this->impl_.size_]);
+		++this->impl_.size_;
 	}
+	// no try/catch needed since impl_ is destructed on stack unwinding
 }
 template<typename T>
 Stack<T>& Stack<T>::operator=(const Stack& rhs)
@@ -180,6 +174,7 @@ int main()
 	{
 		Stack<int> s;
 		Stack<int> s2(s);
+		s2.push(1);
 		s = s2;
 	}
 	{
