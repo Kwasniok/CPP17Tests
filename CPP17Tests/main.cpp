@@ -14,7 +14,7 @@ public:
 	~StackImpl();
 	StackImpl& operator=( const StackImpl& ) = delete;
 	void swap(StackImpl& rhs) noexcept;
-	bool valid() const noexcept { return mem_; }
+	bool valid() const { return mem_; }
 public:
 	T*     mem_ = nullptr;
 	size_t size_ = 0;
@@ -57,7 +57,8 @@ public:
 //       Remember: Since the base class is a template it could have ANY definition since template specialisation is possible.
 //                 Hence the access to thier attributes and member functions must be explicit. (topic name: two stage lookup)
 // NOTE: construct & destruct are deprecated (see: http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2016/p0174r0.html#2.4)
-
+// NOTE: Exception specification add runtime overhead. Use none or just noexcept when using templates which detect if a function is noexcept.
+//       e.g. std::vector only moves if the move constructor of an element is noexcept.
 template<typename T>
 class Stack
 {
@@ -74,16 +75,16 @@ public:
 	~Stack() = default;
 public:
 	void push(const T& v);
-	T& top() const throw(empty_stack_error);
-	void pop() throw(empty_stack_error);
-	inline size_t size() const noexcept { return this->impl_.size_; }
-	inline size_t capacity() const noexcept { return this->impl_.capacity_; }
-	inline bool empty() const noexcept { return this->impl_.size_ == 0; }
-	inline iterator begin() noexcept { return this->impl_.mem_; }
-	inline iterator end() noexcept { return this->impl_.mem_ ? this->impl_.mem_ + this->impl_.size_ : nullptr; }
-	inline const_iterator begin() const noexcept { return this->impl_.mem_; }
-	inline const_iterator end() const noexcept { return this->impl_.mem_ ? this->impl_.mem_ + this->impl_.size_ : nullptr; }
-	inline void swap(Stack<T>& rhs) noexcept { this->impl_.swap(rhs.impl_); }
+	T& top() const;
+	void pop();
+	inline size_t size() const { return this->impl_.size_; }
+	inline size_t capacity() const { return this->impl_.capacity_; }
+	inline bool empty() const { return this->impl_.size_ == 0; }
+	inline iterator begin() { return this->impl_.mem_; }
+	inline iterator end() { return this->impl_.mem_ ? this->impl_.mem_ + this->impl_.size_ : nullptr; }
+	inline const_iterator begin() const { return this->impl_.mem_; }
+	inline const_iterator end() const { return this->impl_.mem_ ? this->impl_.mem_ + this->impl_.size_ : nullptr; }
+	inline void swap(Stack<T>& rhs) { this->impl_.swap(rhs.impl_); }
 private:
 	StackImpl<T> impl_;
 };
@@ -135,7 +136,7 @@ void Stack<T>::push(const T& v)
 }
 
 template<typename T>
-T& Stack<T>::top() const throw(empty_stack_error)
+T& Stack<T>::top() const
 {
 	// give a reference to the last element
 	// an empty stack throws an empty_stack_error
@@ -144,7 +145,7 @@ T& Stack<T>::top() const throw(empty_stack_error)
 	return this->impl_.mem_[this->impl_.size_ - 1];
 }
 template<typename T>
-void Stack<T>::pop() throw(empty_stack_error)
+void Stack<T>::pop()
 {
 	// remove last element
 	// an empty stack throws an empty_stack_error
