@@ -8,7 +8,7 @@ template<typename number_t>
 class Basic_Complex
 {
 public:
-	Basic_Complex(number_t re, number_t im = 0) : re(re), im(im) {  }
+	explicit Basic_Complex(number_t re, number_t im = 0) : re(re), im(im) {  }
 	Basic_Complex& operator+=(const Basic_Complex& rhs)
 	{
 		re += rhs.re;
@@ -34,6 +34,28 @@ public:
 		*this *= z;
 		return *this;
 	}
+	Basic_Complex& operator+=(number_t rhs)
+	{
+		re += rhs;
+		return *this;
+	}
+	Basic_Complex& operator-=(number_t rhs)
+	{
+		re -= rhs;
+		return *this;
+	}
+	Basic_Complex& operator*=(number_t rhs)
+	{
+		re *= rhs;
+		im *= rhs;
+		return *this;
+	}
+	Basic_Complex& operator/=(number_t rhs)
+	{
+		re /= rhs;
+		im /= rhs;
+		return *this;
+	}
 	Basic_Complex& conjugate()
 	{
 		im *= -1;
@@ -43,40 +65,131 @@ public:
 };
 
 template<typename number_t>
-Basic_Complex<number_t> operator+(const Basic_Complex<number_t>& lhs, const Basic_Complex<number_t>& rhs)
+inline Basic_Complex<number_t> operator-(const Basic_Complex<number_t>& rhs)
+{
+	Basic_Complex z(-rhs.re, -rhs.im);
+	return z;
+}
+template<typename number_t>
+inline number_t abs_sq(Basic_Complex<number_t> z)
+{
+	return z.re * z.re + z.im * z.im;
+}
+template<typename number_t>
+inline Basic_Complex<number_t> operator+(const Basic_Complex<number_t>& lhs, const Basic_Complex<number_t>& rhs)
 {
 	Basic_Complex z(lhs);
 	z += rhs;
 	return z;
 }
 template<typename number_t>
-Basic_Complex<number_t> operator-(const Basic_Complex<number_t>& lhs, const Basic_Complex<number_t>& rhs)
+inline Basic_Complex<number_t> operator-(const Basic_Complex<number_t>& lhs, const Basic_Complex<number_t>& rhs)
 {
 	Basic_Complex z(lhs);
 	z -= rhs;
 	return z;
 }
 template<typename number_t>
-Basic_Complex<number_t> operator*(const Basic_Complex<number_t>& lhs, const Basic_Complex<number_t>& rhs)
+inline Basic_Complex<number_t> operator*(const Basic_Complex<number_t>& lhs, const Basic_Complex<number_t>& rhs)
 {
 	Basic_Complex z(lhs);
 	z *= rhs;
 	return z;
 }
 template<typename number_t>
-Basic_Complex<number_t> operator/(const Basic_Complex<number_t>& lhs, const Basic_Complex<number_t>& rhs)
+inline Basic_Complex<number_t> operator/(const Basic_Complex<number_t>& lhs, const Basic_Complex<number_t>& rhs)
 {
 	Basic_Complex z(lhs);
 	z /= rhs;
 	return z;
 }
 template<typename number_t>
-bool operator==(const Basic_Complex<number_t>& lhs, const Basic_Complex<number_t>& rhs)
+inline bool operator==(const Basic_Complex<number_t>& lhs, const Basic_Complex<number_t>& rhs)
 {
 	return lhs.re == rhs.re && lhs.im == rhs.im;
 }
 template<typename number_t>
-bool operator!=(const Basic_Complex<number_t>& lhs, const Basic_Complex<number_t>& rhs)
+inline bool operator!=(const Basic_Complex<number_t>& lhs, const Basic_Complex<number_t>& rhs)
+{
+	return lhs.re != rhs.re || lhs.im != rhs.im;
+}
+
+template<typename number_t>
+inline Basic_Complex<number_t> operator+(const Basic_Complex<number_t>& lhs, number_t rhs)
+{
+	Basic_Complex z(lhs);
+	z.re += rhs;
+	return z;
+}
+template<typename number_t>
+inline Basic_Complex<number_t> operator-(const Basic_Complex<number_t>& lhs, number_t rhs)
+{
+	Basic_Complex z(lhs);
+	z.re -= rhs;
+	return z;
+}
+template<typename number_t>
+inline Basic_Complex<number_t> operator*(const Basic_Complex<number_t>& lhs, number_t rhs)
+{
+	Basic_Complex z(lhs);
+	z.re *= rhs;
+	z.im *= rhs;
+	return z;
+}
+template<typename number_t>
+inline Basic_Complex<number_t> operator/(const Basic_Complex<number_t>& lhs, number_t rhs)
+{
+	Basic_Complex z(lhs);
+	z.re /= rhs;
+	z.im /= rhs;
+	return z;
+}
+template<typename number_t>
+inline bool operator==(const Basic_Complex<number_t>& lhs, number_t rhs)
+{
+	return lhs.re == rhs && lhs.im == 0;
+}
+template<typename number_t>
+inline bool operator!=(const Basic_Complex<number_t>& lhs, number_t rhs)
+{
+	return lhs.re != rhs || lhs.im !=0;
+}
+
+
+template<typename number_t>
+inline Basic_Complex<number_t> operator+(number_t lhs, const Basic_Complex<number_t>& rhs)
+{
+	return rhs + lhs;
+}
+template<typename number_t>
+inline Basic_Complex<number_t> operator-(number_t lhs, const Basic_Complex<number_t>& rhs)
+{
+	Basic_Complex z = -rhs;
+	z += lhs;
+	return z;
+}
+template<typename number_t>
+inline Basic_Complex<number_t> operator*(number_t lhs, const Basic_Complex<number_t>& rhs)
+{
+	return rhs * lhs;
+}
+template<typename number_t>
+inline Basic_Complex<number_t> operator/(number_t lhs, const Basic_Complex<number_t>& rhs)
+{
+	// calculate the multiplicative inverse of rhs
+	Basic_Complex z(rhs.re , -rhs.im);
+	z /= (rhs.re * rhs.re + rhs.im * rhs.im);
+	// multiply with real factor
+	z *= lhs;
+	return z;
+}
+template<typename number_t>
+inline bool operator==(number_t lhs, const Basic_Complex<number_t>& rhs)
+{
+	return lhs.re == rhs.re && lhs.im == rhs.im;
+}
+template<typename number_t>
+inline bool operator!=(number_t lhs, const Basic_Complex<number_t>& rhs)
 {
 	return lhs.re != rhs.re || lhs.im != rhs.im;
 }
@@ -100,6 +213,14 @@ int main()
 		assert(z3 - z2 == z1);
 		z3 = z1 * z2;
 		assert(z3 / z2 == z1);
-		cout << z3;
+		z3 = z1 + 2.0;
+		assert(z3 - 2.0 == z1);
+		z3 = z1 * 3.0;
+		assert(z3 / 3.0 == z1);
+		z3 = 3.0 + z1;
+		assert(3.0 - z3 == -z1);
+		z3 = 3.0 * z1;
+		assert(abs_sq(3.0 / z3 - 1.0 / z1) <= 1.0E-10);
+		cout << z1 << endl;
 	}
 }
