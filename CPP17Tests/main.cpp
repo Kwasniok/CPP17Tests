@@ -65,7 +65,7 @@ public:
 };
 
 template<typename number_t>
-inline Basic_Complex<number_t> operator-(const Basic_Complex<number_t>& rhs)
+inline const Basic_Complex<number_t> operator-(const Basic_Complex<number_t>& rhs)
 {
 	Basic_Complex z(-rhs.re, -rhs.im);
 	return z;
@@ -76,28 +76,28 @@ inline number_t abs_sq(Basic_Complex<number_t> z)
 	return z.re * z.re + z.im * z.im;
 }
 template<typename number_t>
-inline Basic_Complex<number_t> operator+(const Basic_Complex<number_t>& lhs, const Basic_Complex<number_t>& rhs)
+inline const Basic_Complex<number_t> operator+(const Basic_Complex<number_t>& lhs, const Basic_Complex<number_t>& rhs)
 {
 	Basic_Complex z(lhs);
 	z += rhs;
 	return z;
 }
 template<typename number_t>
-inline Basic_Complex<number_t> operator-(const Basic_Complex<number_t>& lhs, const Basic_Complex<number_t>& rhs)
+inline const Basic_Complex<number_t> operator-(const Basic_Complex<number_t>& lhs, const Basic_Complex<number_t>& rhs)
 {
 	Basic_Complex z(lhs);
 	z -= rhs;
 	return z;
 }
 template<typename number_t>
-inline Basic_Complex<number_t> operator*(const Basic_Complex<number_t>& lhs, const Basic_Complex<number_t>& rhs)
+inline const Basic_Complex<number_t> operator*(const Basic_Complex<number_t>& lhs, const Basic_Complex<number_t>& rhs)
 {
 	Basic_Complex z(lhs);
 	z *= rhs;
 	return z;
 }
 template<typename number_t>
-inline Basic_Complex<number_t> operator/(const Basic_Complex<number_t>& lhs, const Basic_Complex<number_t>& rhs)
+inline const Basic_Complex<number_t> operator/(const Basic_Complex<number_t>& lhs, const Basic_Complex<number_t>& rhs)
 {
 	Basic_Complex z(lhs);
 	z /= rhs;
@@ -115,21 +115,21 @@ inline bool operator!=(const Basic_Complex<number_t>& lhs, const Basic_Complex<n
 }
 
 template<typename number_t>
-inline Basic_Complex<number_t> operator+(const Basic_Complex<number_t>& lhs, number_t rhs)
+inline const Basic_Complex<number_t> operator+(const Basic_Complex<number_t>& lhs, number_t rhs)
 {
 	Basic_Complex z(lhs);
 	z.re += rhs;
 	return z;
 }
 template<typename number_t>
-inline Basic_Complex<number_t> operator-(const Basic_Complex<number_t>& lhs, number_t rhs)
+inline const Basic_Complex<number_t> operator-(const Basic_Complex<number_t>& lhs, number_t rhs)
 {
 	Basic_Complex z(lhs);
 	z.re -= rhs;
 	return z;
 }
 template<typename number_t>
-inline Basic_Complex<number_t> operator*(const Basic_Complex<number_t>& lhs, number_t rhs)
+inline const Basic_Complex<number_t> operator*(const Basic_Complex<number_t>& lhs, number_t rhs)
 {
 	Basic_Complex z(lhs);
 	z.re *= rhs;
@@ -137,7 +137,7 @@ inline Basic_Complex<number_t> operator*(const Basic_Complex<number_t>& lhs, num
 	return z;
 }
 template<typename number_t>
-inline Basic_Complex<number_t> operator/(const Basic_Complex<number_t>& lhs, number_t rhs)
+inline const Basic_Complex<number_t> operator/(const Basic_Complex<number_t>& lhs, number_t rhs)
 {
 	Basic_Complex z(lhs);
 	z.re /= rhs;
@@ -157,24 +157,24 @@ inline bool operator!=(const Basic_Complex<number_t>& lhs, number_t rhs)
 
 
 template<typename number_t>
-inline Basic_Complex<number_t> operator+(number_t lhs, const Basic_Complex<number_t>& rhs)
+inline const Basic_Complex<number_t> operator+(number_t lhs, const Basic_Complex<number_t>& rhs)
 {
 	return rhs + lhs;
 }
 template<typename number_t>
-inline Basic_Complex<number_t> operator-(number_t lhs, const Basic_Complex<number_t>& rhs)
+inline const Basic_Complex<number_t> operator-(number_t lhs, const Basic_Complex<number_t>& rhs)
 {
 	Basic_Complex z = -rhs;
 	z += lhs;
 	return z;
 }
 template<typename number_t>
-inline Basic_Complex<number_t> operator*(number_t lhs, const Basic_Complex<number_t>& rhs)
+inline const Basic_Complex<number_t> operator*(number_t lhs, const Basic_Complex<number_t>& rhs)
 {
 	return rhs * lhs;
 }
 template<typename number_t>
-inline Basic_Complex<number_t> operator/(number_t lhs, const Basic_Complex<number_t>& rhs)
+inline const Basic_Complex<number_t> operator/(number_t lhs, const Basic_Complex<number_t>& rhs)
 {
 	// calculate the multiplicative inverse of rhs
 	Basic_Complex z(rhs.re , -rhs.im);
