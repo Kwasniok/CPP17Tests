@@ -23,7 +23,7 @@ string evaluate(Employee& e)
 		string msg = name + "is overpaid\n"; // not portable!
 		cout << msg;
 	}
-	return name; // noexcept move
+	return name; // noexcept move (checked with MS Studio and C++17 (with DEBUG!))
 }
 
 int main() {
