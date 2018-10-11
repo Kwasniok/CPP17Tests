@@ -34,8 +34,8 @@ namespace hidden
 
 	// defines the random chance for a faked bad allocation for external allocations
 	// the real world frequency is approximatly 1:random_bad_alloc_frquency
-	int random_bad_alloc_frquency = 3;
-	bool random_bad_alloc_enabled = false;
+	int random_bad_alloc_frquency = 2;
+	bool random_bad_alloc_enabled = true;
 
 	void print_random_bad_alloc_status()
 	{
@@ -149,26 +149,27 @@ namespace hidden
 	// NOTE: Singleton behaviour is enforced!
 	struct Register_Guard
 	{
-		static bool initialized;
+		// the one and only instance which matters
+		static Register_Guard rg;
+		bool initialized = false;
 		Register_Guard()
 		{
-			if (!initialized)
+			if (!rg.initialized)
 			{
 				on_regular_program_entry();
-				initialized = true;
+				rg.initialized = true;
 			}
 		}
 		~Register_Guard() {
-			if (initialized)
+			if (rg.initialized)
 			{
 				on_regular_program_exit();
-				initialized = false;
+				rg.initialized = false;
 			}
 		}
 	};
-	bool Register_Guard::initialized = false;
 	// the one and only instance which matters
-	Register_Guard rg;
+	Register_Guard Register_Guard::rg;
 }
 
 void* operator new(size_t size)
