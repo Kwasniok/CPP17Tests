@@ -67,9 +67,12 @@ void External_Allocation_Register::register_allocated_address(void* ptr)
 	// append new address to register
 	allocated_addresses.push_back(ptr);
 	// message event
-	const auto flags = cout.flags();
-	cout << "registered address 0x" << hex << ptr << " to allocation register" << endl;
-	cout.flags(flags);
+	if (verbose_registering)
+	{
+		const auto flags = cout.flags();
+		cout << "registered address 0x" << hex << ptr << " to allocation register" << endl;
+		cout.flags(flags);
+	}
 }
 void External_Allocation_Register::unregister_allocated_address(void* ptr)
 {
@@ -83,7 +86,10 @@ void External_Allocation_Register::unregister_allocated_address(void* ptr)
 	{
 		allocated_addresses.erase(it);
 		// message event
-		cout << "unregistered address 0x" << hex << ptr << " from allocation register" << endl;
+		if (verbose_registering)
+		{
+			cout << "unregistered address 0x" << hex << ptr << " from allocation register" << endl;
+		}
 	}
 	else
 	{

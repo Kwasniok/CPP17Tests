@@ -65,9 +65,17 @@ namespace ear
 		void unregister_allocated_address(void* ptr);
 		// display information about all registered external allocations
 		void message_allocated_addresses_status();
+		// enable the output of (un-)registering messages
+		void enable_verbose_registering() { verbose_registering = true; }
+		// disable the output of (un-)registering messages
+		void disable_verbose_registering() { verbose_registering = false; }
+		// toggle the status of registering messages
+		void toggle_verbose_registering() { verbose_registering = !verbose_registering; }
 	private:
 		// holds all externaly allocated pointers
 		std::vector<void*> allocated_addresses;
+		// true if (un-)registering should be verbose
+		bool verbose_registering = true;
 	protected: // protected is necessary due to lock guards (see implementation)
 		// tracks weather a allocation should be registered to prevent from self-blocking
 		bool external_alloc = false;
