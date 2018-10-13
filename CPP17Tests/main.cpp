@@ -158,7 +158,7 @@ namespace hidden
 		// message event
 		cout << "register ended" << endl;
 		// check for externaly allocated memory leaks and print them if they exists
-		if (!Register_Guard::rg.get_register().allocated_addresses.empty())
+		if (!allocated_addresses.empty())
 		{
 			cout << endl << "---MEMORY LEAK DETECTED---" << endl;
 			cout << "the folowing addresses leaked:" << endl;
@@ -171,7 +171,7 @@ namespace hidden
 		Bool_Guard bga(external_alloc, false);
 		Bool_Guard bgd(external_dealloc, false);
 		// append new address to register
-		Register_Guard::rg.get_register().allocated_addresses.push_back(ptr);
+		allocated_addresses.push_back(ptr);
 		// message event
 		auto flags = cout.flags();
 		cout << "registered address 0x" << hex << ptr << " to allocation register" << endl;
