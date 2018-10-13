@@ -39,26 +39,31 @@ void  operator delete[](void*);
 // NOTE: This is NOT THREAD-SAFE! And does NOT SUPPORT MULTIPLE MODULES (cpp files)!
 namespace hidden
 {
-	class Register_Guard;
+	class Register_Guard; // singleton class to control the lifetime of the register
 
-	//
+	// Holds a register of pointers and messages information about them.
+	// NOTE: This class life time is thightly coupled with Register_Guard. Hence it can only be contructed or
+	//       destructed from Register_Guard.
+	// NOTE: (De-)Registering of addresses should only occurr from within a memory (de-)allocation function.
+	//       This is allready the case for the functions mentioned above in section 2.
 	class External_Allocation_Register
 	{
 	protected:
-		// prevent user access to creation of a register
+		// prevent user access to creation or destruction of a register
 		External_Allocation_Register() { }
 		friend Register_Guard;
 		~External_Allocation_Register() { }
 		friend Register_Guard;
+	private:
+		void start();
+		void stop();
 	public:
 		External_Allocation_Register(const External_Allocation_Register&) = delete; // uncopyable
 		External_Allocation_Register(External_Allocation_Register&&) = delete; // unmovable
 		External_Allocation_Register& operator=(const External_Allocation_Register&) = delete; // uncopyable
 		External_Allocation_Register& operator=(External_Allocation_Register&&) = delete; // unmovable
-		void on_regular_program_entry();
-		void on_regular_program_exit();
-		bool do_external_allocation() { return external_alloc; }
-		bool do_external_deallocation() { return external_dealloc; }
+		bool is_external_allocation() { return external_alloc; }
+		bool is_external_deallocation() { return external_dealloc; }
 		void register_allocated_address(void* ptr);
 		void unregister_allocated_address(void* ptr);
 		void message_allocated_addresses_status();
@@ -72,7 +77,7 @@ namespace hidden
 		bool external_dealloc = false;
 	};
 
-	//
+	// Register with extended functionality: Simulates bad allocations based of a random chance.
 	class External_Allocation_Register_With_Random_Bad_Alloc : public External_Allocation_Register
 	{
 	public:
@@ -80,7 +85,7 @@ namespace hidden
 		void enable_random_bad_external_allocation() { random_bad_alloc_enabled = true; }
 		void disable_random_bad_external_allocation() { random_bad_alloc_enabled = false; }
 		void toggle_random_bad_external_allocation() { random_bad_alloc_enabled = !random_bad_alloc_enabled; }
-		bool do_random_bad_external_allocation() { return random_bad_alloc_enabled; }
+		bool is_random_bad_external_allocation() { return random_bad_alloc_enabled; }
 		void set_random_bad_external_allocation_frequency(int f) { random_bad_alloc_frquency = f; }
 		int get_random_bad_external_allocation_frequency() { return random_bad_alloc_frquency; }
 		void message_random_bad_alloc_status();
@@ -120,27 +125,32 @@ namespace hidden
 	{
 		if (!rg.initialized)
 		{
-			reg.on_regular_program_entry();
+			reg.start();
 			rg.initialized = true;
 		}
 	}
 	Register_Guard::~Register_Guard() {
 		if (rg.initialized)
 		{
-			reg.on_regular_program_exit();
+			reg.stop();
 			rg.initialized = false;
 		}
 	}
 
-	void External_Allocation_Register::on_regular_program_entry()
+	void External_Allocation_Register::start()
 	{
 		// start recording external (de-)allocations
 		external_alloc = true;
 		external_dealloc = true;
+		if (!allocated_addresses.empty())
+		{
+			cout << "WARING: starting with non-empty register." << endl;
+			message_allocated_addresses_status();
+		}
 		// message event
 		cout << "register started" << endl;
 	}
-	void External_Allocation_Register::on_regular_program_exit()
+	void External_Allocation_Register::stop()
 	{
 		// stop recording external (de-)allocations
 		external_alloc = false;
@@ -244,9 +254,9 @@ namespace hidden
 
 void* operator new(size_t size)
 {
-	if (hidden::Register_Guard::rg.get_register().do_external_allocation())
+	if (hidden::Register_Guard::rg.get_register().is_external_allocation())
 	{
-		if (hidden::Register_Guard::rg.get_register().do_random_bad_external_allocation())
+		if (hidden::Register_Guard::rg.get_register().is_random_bad_external_allocation())
 		{
 			// simulate random allocation error with frequency 1:random_bad_alloc_frquency
 			auto r = chrono::high_resolution_clock::now().time_since_epoch().count()
@@ -285,7 +295,7 @@ void* operator new[](size_t size)
 }
 void operator delete(void* ptr)
 {
-	if (hidden::Register_Guard::rg.get_register().do_external_deallocation())
+	if (hidden::Register_Guard::rg.get_register().is_external_deallocation())
 	{
 		// unregister external deallocation
 		hidden::Register_Guard::rg.get_register().unregister_allocated_address(ptr);
