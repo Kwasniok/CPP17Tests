@@ -5,6 +5,8 @@
 
 using namespace std;
 
+// - SECTION 1: Helper Classes -
+
 // holds a variable of type T to set_value during the lifetime and restores the original value when destructed (RAII semantics)
 // NOTE: The RAII semantics implicitly require a owning relationship of the guarded variable!
 //       (I.e. The passed variable MUST BECOME READ-ONLY to the rest of the programm during the life time of this guard!)
@@ -19,6 +21,19 @@ public:
 };
 
 using Bool_Guard = Value_Guard<bool>;
+
+
+// - SECTION 2: Declaration of overridden memory (de-)allocation functions -
+
+// These memory (de-) allocation functions will be overridenn to implement the allocation register:
+// NOTE: They must be defined in global scope or they will only be called within code of the same namespace.
+void* operator new(size_t size);
+void* operator new[](size_t size);
+void operator delete(void*);
+void  operator delete[](void*);
+
+
+// - SECTION 3: Declaration and Definition of the Allocation Register and its Guard -
 
 // NOTE: Do NOT maipulate elements of the hidden namespace directly!
 // NOTE: This is NOT THREAD-SAFE! And does NOT SUPPORT MULTIPLE MODULES (cpp files)!
@@ -224,6 +239,9 @@ namespace hidden
 	}
 }
 
+
+// - SECTION 4: Declaration of overridden memory (de-)allocation functions -
+
 void* operator new(size_t size)
 {
 	if (hidden::Register_Guard::rg.get_register().do_external_allocation())
@@ -288,6 +306,9 @@ void* operator new (size_t size, const char* filename, int line) {
 }
 #define tracked_new new(__FILE__, __LINE__)
 */
+
+
+// - SECTION 5: Tests -
 
 int main()
 {
