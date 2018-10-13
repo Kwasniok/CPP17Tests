@@ -35,9 +35,9 @@ void  operator delete[](void*);
 
 // - SECTION 3: Declaration and Definition of the Allocation Register and its Guard -
 
-// NOTE: Do NOT maipulate elements of the hidden namespace directly!
+// NOTE: Do NOT maipulate elements of the EAR namespace directly!
 // NOTE: This is NOT THREAD-SAFE! And does NOT SUPPORT MULTIPLE MODULES (cpp files)!
-namespace hidden
+namespace EAR
 {
 	class Register_Guard; // singleton class to control the lifetime of the register
 
@@ -110,7 +110,7 @@ namespace hidden
 		static Register_Guard rg;
 		Register_Guard();
 		~Register_Guard();
-		External_Allocation_Register_With_Random_Bad_Alloc& get_register() { return reg; }
+		static External_Allocation_Register_With_Random_Bad_Alloc& get_register() { return rg.reg; }
 	private:
 		bool initialized = false;
 		// controlls the lifetime of the following status variable sets
@@ -254,15 +254,15 @@ namespace hidden
 
 void* operator new(size_t size)
 {
-	if (hidden::Register_Guard::rg.get_register().is_external_allocation())
+	if (EAR::Register_Guard::get_register().is_external_allocation())
 	{
-		if (hidden::Register_Guard::rg.get_register().is_random_bad_external_allocation())
+		if (EAR::Register_Guard::get_register().is_random_bad_external_allocation())
 		{
 			// simulate random allocation error with frequency 1:random_bad_alloc_frquency
 			auto r = chrono::high_resolution_clock::now().time_since_epoch().count()
-				     % hidden::Register_Guard::rg.get_register().get_random_bad_external_allocation_frequency();
+				     % EAR::Register_Guard::get_register().get_random_bad_external_allocation_frequency();
 			if (r == 0) {
-				hidden::Register_Guard::rg.get_register().message_random_bad_alloc();
+				EAR::Register_Guard::get_register().message_random_bad_alloc();
 				throw bad_alloc();
 			}
 		}
@@ -270,11 +270,11 @@ void* operator new(size_t size)
 		void* ptr = malloc(size);
 		if (ptr == nullptr)
 		{
-			hidden::Register_Guard::rg.get_register().message_bad_alloc();
+			EAR::Register_Guard::get_register().message_bad_alloc();
 			throw bad_alloc();
 		}
 		// register external allocation
-		hidden::Register_Guard::rg.get_register().register_allocated_address(ptr);
+		EAR::Register_Guard::get_register().register_allocated_address(ptr);
 		// return address to validly allocated memory
 		return ptr;
 	}
@@ -295,10 +295,10 @@ void* operator new[](size_t size)
 }
 void operator delete(void* ptr)
 {
-	if (hidden::Register_Guard::rg.get_register().is_external_deallocation())
+	if (EAR::Register_Guard::get_register().is_external_deallocation())
 	{
 		// unregister external deallocation
-		hidden::Register_Guard::rg.get_register().unregister_allocated_address(ptr);
+		EAR::Register_Guard::get_register().unregister_allocated_address(ptr);
 	}
 	// normal ex-/internal deallocation
 	free(ptr);
@@ -322,19 +322,19 @@ void* operator new (size_t size, const char* filename, int line) {
 
 int main()
 {
-	// short test for direct interaction with 'hidden' module
+	// short test for direct interaction with 'EAR' module
 	/*
 	{
 		auto ptr = reinterpret_cast<void*>(12345);
-		hidden::register_allocated_address(ptr);
-		hidden::message_allocated_addresses_status();
-		hidden::unregister_allocated_address(ptr);
-		hidden::message_allocated_addresses_status();
-		hidden::unregister_allocated_address(ptr);
+		EAR::register_allocated_address(ptr);
+		EAR::message_allocated_addresses_status();
+		EAR::unregister_allocated_address(ptr);
+		EAR::message_allocated_addresses_status();
+		EAR::unregister_allocated_address(ptr);
 	}
 	*/
 
-	//  short test for real world interaction with 'hidden' module
+	//  short test for real world interaction with 'EAR' module
 	/*
 	{
 		int* ip = new int(0);
@@ -359,7 +359,7 @@ int main()
 
 	// real world example test with random
 	{
-		auto& reg = hidden::Register_Guard::rg.get_register();
+		auto& reg = EAR::Register_Guard::get_register();
 		reg.message_random_bad_alloc_status();
 		try
 		{
