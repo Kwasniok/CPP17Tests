@@ -1,5 +1,6 @@
 ﻿
 #include <iostream>
+#include <chrono>
 #include "ear.h"
 
 using namespace std;
@@ -60,4 +61,54 @@ int main()
 			cout << "main(): bad_alloc catched" << endl;
 		}
 	}
+
+	// ear speed test
+	/*
+	{
+		const auto flags = cout.flags();
+		cout.precision(3);
+
+		//auto& reg = ear::Register_Guard::get_register();
+		//reg.disable_verbose_registering();
+		size_t reps = 0xFFFFF;
+		auto start = chrono::high_resolution_clock::now();
+		for (size_t i = 0; i < reps; ++i)
+		{
+			if (i % 0xFFFF == 0) cout << double(i) / double(reps) * 100 << "%     " << "\r";
+			make_unique<int>(0);
+		}
+		auto stop = chrono::high_resolution_clock::now();
+		auto duration = chrono::duration<double>(stop - start).count();
+		cout << reps << " repititions took " << duration << "s" << endl;
+		cout << duration/reps*1E6 << "mus/cycle" << endl;
+
+		cout.flags(flags);
+	}
+	/*
+	WITH EAR:
+		DEBUG x86
+			register started
+			1048575 repititions took 5.16s
+			4.92mus/cycle
+			register ended
+		DEBUG x64
+			register started
+			1048575 repititions took 4.52s
+			4.31mus/cycle
+			register ended
+		RELEASE x86
+			register started
+			1048575 repititions took 0.228s
+			0.218mus/cycle
+			register ended
+		RELEASE x64
+			register started
+			1048575 repititions took 0.12s
+			0.114mus/cycle
+			register ended
+	WITHOUT EAR
+		DEBUG x64
+			1048575 repititions took 0.804s
+			0.766mus/cycle
+	*/
 }
