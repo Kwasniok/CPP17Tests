@@ -67,7 +67,7 @@ void External_Allocation_Register::register_allocated_address(void* ptr)
 	// append new address to register
 	allocated_addresses.push_back(ptr);
 	// message event
-	auto flags = cout.flags();
+	const auto flags = cout.flags();
 	cout << "registered address 0x" << hex << ptr << " to allocation register" << endl;
 	cout.flags(flags);
 }
@@ -78,7 +78,7 @@ void External_Allocation_Register::unregister_allocated_address(void* ptr)
 	Bool_Guard bgd(external_dealloc, false);
 	// remove address from register if possible
 	auto it = find(allocated_addresses.begin(), allocated_addresses.end(), ptr);
-	auto flags = cout.flags(); // to restore the cout flags
+	const auto flags = cout.flags(); // to restore the cout flags
 	if (it != allocated_addresses.end())
 	{
 		allocated_addresses.erase(it);
@@ -99,7 +99,7 @@ void External_Allocation_Register::message_allocated_addresses_status()
 	Bool_Guard bgd(external_dealloc, false);
 	// print register
 	cout << "---allocated addresses---" << endl;
-	auto flags = cout.flags(); // to restore the cout flags
+	const auto flags = cout.flags(); // to restore the cout flags
 	for (auto ptr : allocated_addresses)
 	{
 		cout << "0x" << hex << ptr << endl;

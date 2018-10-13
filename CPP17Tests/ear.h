@@ -117,6 +117,10 @@ namespace ear
 		Register_Guard();
 		// called after main() 'exit hook'
 		~Register_Guard();
+		Register_Guard(const Register_Guard&) = delete; // not copiable
+		Register_Guard(Register_Guard&&) = delete; // not movable
+		Register_Guard& operator=(const Register_Guard&) = delete; // not copiable
+		Register_Guard& operator=(Register_Guard&&) = delete; // not movable
 		// returns a reference to the allocation register
 		static External_Allocation_Register_With_Random_Bad_Alloc& get_register() { return rg.reg; }
 	public:

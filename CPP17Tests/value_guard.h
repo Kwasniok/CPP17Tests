@@ -12,4 +12,8 @@ class Value_Guard
 public:
 	Value_Guard(T& v, T set_value) : target(v), reset_value(v) { target = set_value; }
 	~Value_Guard() { target = reset_value; }
+	Value_Guard(const Value_Guard&) = delete; // not copiable
+	Value_Guard(Value_Guard&&) = delete; // not movable
+	Value_Guard& operator=(const Value_Guard&) = delete; // not copiable
+	Value_Guard& operator=(Value_Guard&&) = delete; // not movable
 };
