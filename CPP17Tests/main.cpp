@@ -1,6 +1,7 @@
 ﻿
 #include <iostream>
 #include <chrono>
+#include <vector>
 #include "ear.h"
 
 using namespace std;
@@ -62,7 +63,7 @@ int main()
 		}
 	}
 
-	// ear speed test
+	// ear speed test 1/2 (ear vs. default)
 	/*
 	{
 		const auto flags = cout.flags();
@@ -110,5 +111,62 @@ int main()
 		DEBUG x64
 			1048575 repititions took 0.804s
 			0.766mus/cycle
+	*/
+
+	// ear speed test 2/2 (internal container vector vs. set)
+	/*
+	{
+	const auto flags = cout.flags();
+	cout.precision(3);
+
+	auto& reg = ear::Register_Guard::get_register();
+	reg.disable_verbose_registering();
+	const size_t reps = 0xFFFF;
+	const size_t reps_inner = 0xF;
+	auto start = chrono::high_resolution_clock::now();
+	for (size_t i = 0; i < reps; ++i)
+	{
+		if (i % 0xFF == 0) cout << double(i) / double(reps) * 100 << "%     " << "\r";
+		for (size_t i = 0; i < reps_inner; ++i)
+		{
+			std::vector<unique_ptr<int>> v(reps_inner);
+			v.push_back(make_unique<int>(0));
+		}
+	}
+	auto stop = chrono::high_resolution_clock::now();
+	auto duration = chrono::duration<double>(stop - start).count();
+	cout << reps << " repititions took " << duration << "s" << endl;
+	cout << duration/reps*1E6 << "mus/cycle" << endl;
+	cout << duration/reps/reps_inner*1E6 << "mus/unique_ptr" << endl;
+
+	cout.flags(flags);
+	}
+	/*
+	WITH EAR (internal container: vector)
+		DEBUG x64
+			register started
+			4095 repititions took 2.54s
+			620mus/cycle
+			41.3mus/unique_ptr
+			register ended
+		RELEASE x64
+			register started
+			65535 repititions took 0.495s
+			7.56mus/cycle
+			0.504mus/unique_ptr
+			register ended
+	WITH EAR (internal contianer: set)
+		DEBUG x64
+			register started
+			4095 repititions took 3.56s
+			869mus/cycle
+			57.9mus/unique_ptr
+			register ended
+		RELEASE x64
+			register started
+			65535 repititions took 1s
+			15.3mus/cycle
+			1.02mus/unique_ptr
+			register ended
 	*/
 }
