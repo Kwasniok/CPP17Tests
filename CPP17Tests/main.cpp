@@ -4,74 +4,81 @@
 
 using namespace std;
 
+void display_arguments(const int argc, const char *const *const args);
+bool get_file_names(const int argc, const char *const *const args, const char*& ifname, const char*& ofname);
+
+template<class In, class Out>
+void transfer_stream(In& is, Out& os)
+{
+	for (char c; is.good(); )
+	{
+		c = is.get();
+		if (is.eof()) break;
+		os << c;
+	}
+}
+
 int main(int argc, char** args)
 {
-	for (int i = 0; i < argc; ++i)
-		cout << "args[" << i << "] = \"" << args[i] << "\"" << endl;
+	// display_arguments(argc, args);
 
 	const char* ifname = nullptr;
 	const char* ofname = nullptr;
 
-	istream* isp = &cin;
-	ostream* osp = &cout;
-
+	if (!get_file_names(argc, args, ifname, ofname))
 	{
-		unique_ptr<ifstream> ifs;
-		unique_ptr<ofstream> ofs;
+		cout << "Could not resolve io file paths. Exiting." << endl;
+		return EXIT_FAILURE;
+	}
 
-		if (argc == 3)
-		{
-			ifname = args[1];
-			ofname = args[2];
-		}
-		else if (argc == 2)
-		{
-			ofname = args[1];
-		}
-		else
-		{
-			cout << "unsupported number of arguments" << endl;
-			return EXIT_FAILURE;
-		}
+	if (ofname && ifname)
+	{
+		ifstream ifs(ifname);
+		ofstream ofs(ofname);
 
-		if (ifname)
-		{
-			ifs = make_unique<ifstream>(ifname);
-			if (ifs->good() && ifs->is_open())
-			{
-				isp = ifs.get();
-			}
-			else
-			{
-				cout << "could not open inputfile \"" << ifname << "\"" << endl;
-			}
-		}
-		if (ofname)
-		{
-			ofs = make_unique<ofstream>(ofname);
-			if (ofs->good() && ofs->is_open())
-			{
-				osp = ofs.get();
-				cout << "opend file \"" << ofname << "\"" << endl;
-			}
-			else
-			{
-				cout << "could not open outputfile \"" << ofname << "\"" << endl;
-			}
-		}
+		transfer_stream(ifs, ofs);
+	}
+	else if (ofname)
+	{
+		ofstream ofs(ofname);
 
-		char c;
-		while (isp->good()) {
-			char c = isp->get();
-			if (isp->eof()) break;
-			*osp << c;
-		}
-
-		osp->flush();
-
-		isp = &cin;
-		osp = &cout;
+		transfer_stream(cin, ofs);
+	}
+	else
+	{
+		transfer_stream(cin, cout);
 	}
 
 	return EXIT_SUCCESS;
 }
+
+void display_arguments(const int argc, const char *const *const args)
+{
+	for (int i = 0; i < argc; ++i)
+		cout << "args[" << i << "] = \"" << args[i] << "\"" << endl;
+}
+
+bool get_file_names(const int argc, const char *const *const args, const char*& ifname, const char*& ofname)
+{
+	if (argc == 3)
+	{
+		ifname = args[1];
+		ofname = args[2];
+	}
+	else if (argc == 2)
+	{
+		ofname = args[1];
+	}
+	else if (argc == 1)
+	{
+		// do nothing
+	}
+	else
+	{
+		cout << "Uunsupported number of arguments. Use 1 or 2 file paths as arguments." << endl;
+		return false;
+	}
+	return true;
+}
+
+
