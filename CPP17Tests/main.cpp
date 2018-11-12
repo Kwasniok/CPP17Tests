@@ -1,149 +1,204 @@
 ﻿
 #include <iostream>
 #include <fstream>
-#include <map>
 #include <string>
+#include <map>
+#include <chrono>
 
-class Logger_Error: public std::runtime_error
+// appends std::chrono:time_points to a std::basic_stream as unix time with format "UNIX-TIME-MS-<time in ms>"
+template<typename T, typename CharT, typename CharTraits = std::char_traits<CharT>>
+std::basic_ostream<CharT, CharTraits>& operator<<(std::basic_ostream<CharT, CharTraits>& os, std::chrono::time_point<T> tp)
+{
+	return os << "UNIX-TIME-MS-" << std::chrono::duration_cast<std::chrono::nanoseconds>(tp.time_since_epoch()).count();
+}
+
+class Log_Stream_Error: public std::runtime_error
 {
 public:
-	explicit Logger_Error(const std::string& msg) : runtime_error(msg) { };
-	explicit Logger_Error(const char* msg) : runtime_error(msg) { };
+	explicit Log_Stream_Error(const std::string& msg) : runtime_error(msg) { };
+	explicit Log_Stream_Error(const char* msg) : runtime_error(msg) { };
 };
 
-class Logger_File
+class Log_Stream
 {
-	std::string path;
 	std::ofstream ofs;
-	std::string prefix;
-	std::string postfix;
+	std::string path;
+	std::string name;
+	bool add_timestamps = true;
 
 public:
-	Logger_File(const std::string& path);
-	~Logger_File() = default;
-	Logger_File(const Logger_File&) = delete;
-	Logger_File(Logger_File&&) = default;
-	const Logger_File& operator=(const Logger_File&) = delete;
-	Logger_File& operator=(Logger_File&&) = default;
+	Log_Stream(const std::string& path, const std::string& name);
+	Log_Stream(std::string&& path, std::string&& name);
+	~Log_Stream() = default;
+	Log_Stream(const Log_Stream&) = delete;
+	Log_Stream(Log_Stream&&) = default;
+	Log_Stream& operator=(const Log_Stream&) = delete;
+	Log_Stream& operator=(Log_Stream&&) = default;
 
 	bool good() { return ofs.good(); }
 	bool is_open() { return ofs.is_open(); }
+
 	const std::string& get_path() const noexcept { return path; }
-	const std::string& get_prefix() const noexcept { return prefix; }
-	const std::string& get_postfix() const noexcept { return postfix; }
+	const std::string& get_name() const noexcept { return name; }
+	void set_name(const std::string& n) { name = n; }
+	void set_name(std::string&& n) { name = std::move(n); }
+	bool get_add_timestamps() const noexcept { return add_timestamps; }
+	void set_add_timestamps(bool ats) { add_timestamps = ats; }
 
 	template<typename T>
-	friend Logger_File& operator<<(Logger_File&, const T&);
-	friend Logger_File& operator<<(Logger_File&, Logger_File& (*)(Logger_File&));
-	friend Logger_File& operator<<(Logger_File&, std::ofstream& (*)(std::ofstream&));
-	friend Logger_File& endl(Logger_File& lf);
-	friend Logger_File& startlog(Logger_File& lf);
-	friend Logger_File& endlog(Logger_File& lf);
+	friend Log_Stream& operator<<(Log_Stream& lf, const T& obj);
+	friend Log_Stream& operator<<(Log_Stream& lf, std::ofstream& (*func)(std::ofstream&));
+	friend Log_Stream& operator<<(Log_Stream& lf, Log_Stream&(*func)(Log_Stream&));
+	friend Log_Stream& startlog(Log_Stream& lf);
+	friend Log_Stream& endlog(Log_Stream& lf);
+	friend Log_Stream& endl(Log_Stream& lf); // needs own endl due to deduction issues with std::endl (but std::hex might work!?)
 };
+Log_Stream& now(Log_Stream& lf);
 
-Logger_File::Logger_File(const std::string& path)
-	: path(path), ofs(path) { }
+Log_Stream::Log_Stream(const std::string& path, const std::string& name)
+	: path(path), name(name), ofs(path) { }
+
+Log_Stream::Log_Stream(std::string&& path, std::string&& name)
+	: path(path), name(std::move(name)), ofs(path) { }
 
 template<typename T>
-Logger_File& operator<<(Logger_File& lf, const T& obj)
+Log_Stream& operator<<(Log_Stream& lf, const T& obj)
 {
 	lf.ofs << obj;
 	return lf;
 }
-
-Logger_File& operator<<(Logger_File& lf, Logger_File& (*func)(Logger_File&))
-{
-	func(lf);
-	return lf;
-}
-
-// requires explicit template parameters e.g.:
-// Logger_File lf;
-// lf << std::endl; // won't compile!
-// lf << std::endl<char, std::char_traits<char>>; // will compile
-Logger_File& operator<<(Logger_File& lf, std::ofstream& (*func)(std::ofstream&))
+Log_Stream& operator<<(Log_Stream& lf, std::ofstream& (*func)(std::ofstream&))
 {
 	func(lf.ofs);
 	return lf;
 }
-
-
-Logger_File& startlog(Logger_File& lf)
+Log_Stream& operator<<(Log_Stream& lf, Log_Stream&(*func)(Log_Stream&))
 {
-	if (!lf.prefix.empty())
+	return func(lf);
+}
+Log_Stream& startlog(Log_Stream& lf)
+{
+	bool has_prefix = false;
+	if (!lf.name.empty())
 	{
-		lf.ofs << lf.prefix;
+		lf << lf.name;
+		has_prefix = true;
+	}
+	if (lf.add_timestamps)
+	{
+		lf << "@" << now;
+		has_prefix = true;
+	}
+	if (has_prefix)
+	{
+		lf << ": ";
 	}
 	return lf;
 }
-
-
-Logger_File& endlog(Logger_File& lf)
+Log_Stream& endlog(Log_Stream& lf)
 {
-	if (!lf.postfix.empty())
-	{
-		lf.ofs << lf.postfix;
-	}
+	lf.ofs << std::endl; // implicit flush!
+	return lf;
+}
+Log_Stream& endl(Log_Stream& lf)
+{
 	lf.ofs << std::endl;
 	return lf;
 }
-
-class Logger_Manager
+Log_Stream& now(Log_Stream& lf)
 {
-	std::map<const std::string, Logger_File> logger_files;
+	return lf << std::chrono::system_clock::now();
+}
+
+class Log_Stream_Manager
+{
+private:
+	std::map<const std::string, Log_Stream> log_streams;
 
 public:
-	Logger_Manager() = default;
-	~Logger_Manager() = default;
+	Log_Stream_Manager() = default;
+	~Log_Stream_Manager() = default;
 public:
-	void add_logger(const std::string& name, const std::string& path);
-	Logger_File& get(const std::string name); // throws Logger_Error
+	void add_log(const std::string& name, const std::string& path); // throws Log_Stream_Error
+	Log_Stream& get_log(const std::string name); // throws Log_Stream_Error
 };
 
-void Logger_Manager::add_logger(const std::string& name, const std::string& path)
+void Log_Stream_Manager::add_log(const std::string& name, const std::string& path)
 {
-	auto it = logger_files.find(name);
-	if (it == logger_files.end())
+	// check if a log stream with this name exists and add one if not
+	auto it = log_streams.find(name);
+	if (it == log_streams.end())
 	{
-		logger_files.insert({name, path});
-	}
-	else
-	{
-		if (it->second.get_path() != path)
+		// a log stream with this name does not exist
+		// a new log stream is created and added iff it is opened(/working)
+		Log_Stream lf(path, name);
+		lf << startlog << "Started logging: name=\"" << name << "\", path= \"" << path << "\""<< endlog;
+		if (lf.is_open())
 		{
-			it->second
-				<< "Second logger with same name as this (\""
-				<< name
-				<< "\") but different path (\""
-				<< path
-				<< "\") was not created.\n";
+			// creation of log stream was successful: add it
+			log_streams.emplace(name, std::move(lf));
 		}
+		else
+		{
+			// creation of log stream was unsuccessful: report it as an excpetion
+			std::string msg;
+			msg += "Could not create log stream with name \"";
+			msg += name;
+			msg += "\" at path \"";
+			msg += path;
+			msg += "\".";
+			throw Log_Stream_Error(msg);
+		}
+	}
+	else {
+		// there exists allready another log stream with the same name (but maybe with a different path)
+		// report this to the allready existing log stream
+		it->second
+			<< startlog
+			<< "An attempt to add another log stream with the same name (\""
+			<< name
+			<< "\") and path (\""
+			<< path
+			<< "\") was detected."
+			<< endl
+			<< "The current path of this file is \""
+			<< it->second.get_path()
+			<< "\""
+			<< endlog;
 	}
 }
 
-Logger_File& Logger_Manager::get(const std::string logger_name)
+Log_Stream& Log_Stream_Manager::get_log(const std::string name)
 {
-	auto it = logger_files.find(logger_name);
-	if (it != logger_files.end())
+	auto it = log_streams.find(name);
+	if (it != log_streams.end())
 	{
 		return it->second;
 	}
+	/*
+	else if(it = log_streams.find(/ *some name* /), it != log_streams.end())
+	{
+		// report missing log stream (once?)
+		return it->second;
+	}
+	*/
 	else
 	{
 		std::string msg;
-		msg += "Could not find logger with name \"";
-		msg += logger_name;
+		msg += "Could not find log stream with name \"";
+		msg += name;
 		msg += "\".";
-		throw Logger_Error(msg);
+		throw Log_Stream_Error(msg);
 	}
 }
 
-Logger_Manager log_man;
-using namespace std;
+Log_Stream_Manager log_man;
+
 int main()
 {
 	std::string log_name("default");
-	log_man.add_logger(log_name, "out.txt");
-	log_man.get("default") << "This log file is called: \"" << log_name << "\"" << std::endl<char, std::char_traits<char>>;
-	log_man.get("default") << "Some test text ..." << std::endl<char, std::char_traits<char>>;
+
+	log_man.add_log(log_name, "out.txt");
+	auto& log = log_man.get_log(log_name);
+	log << startlog << "Some test text ..." << endlog;
 }
