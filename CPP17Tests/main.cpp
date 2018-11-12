@@ -2,28 +2,28 @@
 #include "Log_Stream.h"
 #include <iostream>
 
-Log_Stream_Manager log_man;
-
 int main()
 {
-	/*
+	Log_Stream_Manager log_man;
+
+	// basic tests
 	{ // supported (one log stream per file)
 		auto& log1 = log_man.add_log("error", "error.txt");
-		log1 << startlog << "Some test text ..." << endlog;
+		log1 << beginlog << "Some test text ..." << endlog;
 
 		auto& log2 = log_man.add_log("warning", "warning.txt");
-		log2 << startlog << "Some test text ..." << endlog;
+		log2 << beginlog << "Some test text ..." << endlog;
 	}
 	{ // unsupported!!! (multiple log streams per file)
 		auto& log1 = log_man.add_log("info1", "pool.txt");
-		log1 << startlog << "Some test text ... 1" << endlog;
+		log1 << beginlog << "Some test text ... 1" << endlog;
 
 		auto& log2 = log_man.add_log("info2", "pool.txt");
-		log2 << startlog << "Some test text ... 2" << endlog;
+		log2 << beginlog << "Some test text ... 2" << endlog;
 	}
-	*/
 
 	/*
+	// speed test
 	{ // log stream with time stamp 20x to 50x faster than std::cerr without time stamp
 		int reps = 10000;
 		{
@@ -41,7 +41,7 @@ int main()
 			auto start = std::chrono::system_clock::now();
 			for (int i = 0; i < reps; ++i)
 			{
-				log << startlog << "TEST" << endlog;
+				log << beginlog << "TEST" << endlog;
 			}
 			auto stop = std::chrono::system_clock::now();
 			auto diff = std::chrono::duration_cast<std::chrono::nanoseconds>(stop-start);

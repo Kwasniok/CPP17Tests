@@ -16,7 +16,7 @@ Log_Stream& operator<<(Log_Stream& lf, Log_Stream&(*func)(Log_Stream&))
 {
 	return func(lf);
 }
-Log_Stream& startlog(Log_Stream& lf)
+Log_Stream& beginlog(Log_Stream& lf)
 {
 	bool has_prefix = false;
 	if (!lf.name.empty())
@@ -42,7 +42,7 @@ Log_Stream& endlog(Log_Stream& lf)
 }
 Log_Stream& endl(Log_Stream& lf)
 {
-	lf.ofs << std::endl;
+	lf.ofs << std::endl; // implicit flush!
 	return lf;
 }
 Log_Stream& now(Log_Stream& lf)
@@ -50,6 +50,14 @@ Log_Stream& now(Log_Stream& lf)
 	return lf << std::chrono::system_clock::now();
 }
 
+Log_Stream_Manager::~Log_Stream_Manager()
+{
+	// remove all logs to trigger a timestamped message at the end of each log stream
+	while (!log_streams.empty())
+	{
+		remove_log((--log_streams.end())->first);
+	}
+}
 Log_Stream& Log_Stream_Manager::add_log(const std::string& name, const std::string& path)
 {
 	// check if a log stream with this name exists and add one if not
@@ -59,7 +67,7 @@ Log_Stream& Log_Stream_Manager::add_log(const std::string& name, const std::stri
 		// a log stream with this name does not exist
 		// a new log stream is created and added iff it is opened(/working)
 		Log_Stream lf(path, name);
-		lf << startlog << "Started logging: name=\"" << name << "\", path=\"" << path << "\""<< endlog;
+		lf << beginlog << "Started this log stream: name=\"" << name << "\", path=\"" << path << "\""<< endlog;
 		if (lf.is_open())
 		{
 			// creation of log stream was successful: add it
@@ -83,7 +91,7 @@ Log_Stream& Log_Stream_Manager::add_log(const std::string& name, const std::stri
 		// there exists allready another log stream with the same name (but maybe with a different path)
 		// report this to the allready existing log stream
 		it->second
-			<< startlog
+			<< beginlog
 			<< "An attempt to add another log stream with the same name (\""
 			<< name
 			<< "\") and path (\""
@@ -98,8 +106,7 @@ Log_Stream& Log_Stream_Manager::add_log(const std::string& name, const std::stri
 		return it->second;
 	}
 }
-
-Log_Stream& Log_Stream_Manager::get_log(const std::string name)
+Log_Stream& Log_Stream_Manager::get_log(const std::string& name)
 {
 	// search for log stream
 	auto it = log_streams.find(name);
@@ -124,4 +131,17 @@ Log_Stream& Log_Stream_Manager::get_log(const std::string name)
 		msg += "\".";
 		throw Log_Stream_Error(msg);
 	}
+}
+bool Log_Stream_Manager::remove_log(const std::string& name)
+{
+	// find the corresponding log stream and remove it if possible
+	auto it = log_streams.find(name);
+	if (it!=log_streams.end())
+	{
+		// log the remove event to the stream and erase it
+		it->second << beginlog << "Removed this log stream." << endlog;
+		log_streams.erase(it);
+		return true;
+	}
+	return false;
 }
