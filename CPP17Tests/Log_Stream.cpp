@@ -59,7 +59,7 @@ Log_Stream& Log_Stream_Manager::add_log(const std::string& name, const std::stri
 		// a log stream with this name does not exist
 		// a new log stream is created and added iff it is opened(/working)
 		Log_Stream lf(path, name);
-		lf << startlog << "Started logging: name=\"" << name << "\", path= \"" << path << "\""<< endlog;
+		lf << startlog << "Started logging: name=\"" << name << "\", path=\"" << path << "\""<< endlog;
 		if (lf.is_open())
 		{
 			// creation of log stream was successful: add it
