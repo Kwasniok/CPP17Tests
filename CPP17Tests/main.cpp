@@ -2,10 +2,11 @@
 #include "Log_Stream.h"
 #include <iostream>
 
+Log_Stream_Manager log_man;
+
 int main()
 {
-	Log_Stream_Manager log_man;
-
+	/*
 	// basic tests
 	{ // supported (one log stream per file)
 		auto& log1 = log_man.add_log("error", "error.txt");
@@ -21,6 +22,7 @@ int main()
 		auto& log2 = log_man.add_log("info2", "pool.txt");
 		log2 << beginlog << "Some test text ... 2" << endlog;
 	}
+	*/
 
 	/*
 	// speed test
